@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Moon, Sun, Plus, Key, Info } from 'lucide-react';
+import { Moon, Sun, Plus, Key, Info, Check, X } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { Theme, Filter } from '../types';
 import { TaskModal } from './TaskModal';
@@ -52,6 +52,12 @@ const Button = styled.button`
   &:hover {
     background: ${({ theme }) => theme.border};
   }
+
+  &.active {
+    background: ${({ theme }) => theme.accent};
+    color: white;
+    border-color: ${({ theme }) => theme.accent};
+  }
 `;
 
 const FilterSelect = styled.select`
@@ -88,6 +94,10 @@ const SyncKeyContainer = styled.div`
   width: 100%;
   max-width: 800px;
   margin-top: 1rem;
+  background: ${({ theme }) => theme.background};
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid ${({ theme }) => theme.border};
 `;
 
 const SyncKeyForm = styled.form`
@@ -102,9 +112,10 @@ const SyncKeyInfo = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem;
+  padding: 0.75rem;
   border-radius: 6px;
-  background: ${({ theme }) => theme.background};
+  background: ${({ theme }) => theme.surface};
+  border: 1px dashed ${({ theme }) => theme.border};
 `;
 
 const SyncKeyHints = styled.ul`
@@ -112,6 +123,18 @@ const SyncKeyHints = styled.ul`
   padding-left: 1.5rem;
   font-size: 0.85rem;
   color: ${({ theme }) => theme.secondary};
+  line-height: 1.6;
+`;
+
+const SyncStatus = styled.div<{ active?: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: ${({ theme, active }) => active ? theme.success : theme.secondary};
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background: ${({ theme }) => theme.surface};
 `;
 
 export const Header: React.FC = () => {
@@ -125,7 +148,7 @@ export const Header: React.FC = () => {
   };
 
   const handleAddTask = async (task: { title: string; description: string; deadline?: Date }) => {
-    await addTask({ ...task, completed: false });
+    await addTask({ ...task, completed: false, sync_key: syncKey });
   };
 
   const handleSyncKeySubmit = (e: React.FormEvent) => {
@@ -142,8 +165,13 @@ export const Header: React.FC = () => {
         <HeaderContent>
           <Title>
             Tasks
-            <Button onClick={() => setShowSyncKey(!showSyncKey)} title="Configure sync key">
+            <Button 
+              onClick={() => setShowSyncKey(!showSyncKey)} 
+              title={syncKey ? "Manage sync key" : "Set up sync key"}
+              className={!syncKey ? 'active' : undefined}
+            >
               <Key size={18} />
+              {!syncKey && "Set up sync"}
             </Button>
           </Title>
           <Controls>
@@ -183,10 +211,23 @@ export const Header: React.FC = () => {
                   value={tempSyncKey}
                   onChange={(e) => setTempSyncKey(e.target.value)}
                   type="text"
+                  autoComplete="off"
                 />
-                <Button type="submit">
-                  Set Key
+                <Button type="submit" className={syncKey ? undefined : 'active'}>
+                  {syncKey ? 'Update Key' : 'Start Syncing'}
                 </Button>
+                {syncKey && (
+                  <Button 
+                    type="button" 
+                    onClick={() => {
+                      setSyncKey('');
+                      setTempSyncKey('');
+                    }}
+                  >
+                    <X size={18} />
+                    Remove Key
+                  </Button>
+                )}
               </SyncKeyForm>
               {!syncKey && (
                 <SyncKeyHints>
