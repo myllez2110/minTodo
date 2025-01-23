@@ -54,9 +54,9 @@ const Button = styled.button`
   }
 
   &.active {
-    background: ${({ theme }) => theme.accent};
+    background: ${({ theme }) => theme.surface};
     color: white;
-    border-color: ${({ theme }) => theme.accent};
+    border-color: ${({ theme }) => theme.border};
   }
 `;
 
@@ -156,6 +156,7 @@ export const Header: React.FC = () => {
     const key = tempSyncKey.trim();
     if (key) {
       setSyncKey(key);
+      setShowSyncKey(false);
     }
   };
 
@@ -174,27 +175,29 @@ export const Header: React.FC = () => {
               {!syncKey && "Set up sync"}
             </Button>
           </Title>
-          <Controls>
-            <SearchInput
-              placeholder="Search tasks..."
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <FilterSelect
-              value={filter}
-              onChange={(e) => setFilter(e.target.value as Filter)}
-            >
-              <option value="all">All</option>
-              <option value="completed">Completed</option>
-              <option value="pending">Pending</option>
-            </FilterSelect>
-            <Button onClick={toggleTheme}>
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            </Button>
-            <Button onClick={() => setIsModalOpen(true)}>
-              <Plus size={18} />
-              New Task
-            </Button>
-          </Controls>
+          {syncKey && (
+            <Controls>
+              <SearchInput
+                placeholder="Search tasks..."
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <FilterSelect
+                value={filter}
+                onChange={(e) => setFilter(e.target.value as Filter)}
+              >
+                <option value="all">All</option>
+                <option value="completed">Completed</option>
+                <option value="pending">Pending</option>
+              </FilterSelect>
+              <Button onClick={toggleTheme}>
+                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              </Button>
+              <Button onClick={() => setIsModalOpen(true)}>
+                <Plus size={18} />
+                New Task
+              </Button>
+            </Controls>
+          )}
           {showSyncKey && (
             <SyncKeyContainer>
               <SyncKeyInfo>
