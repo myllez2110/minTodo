@@ -60,13 +60,23 @@ const Button = styled.button`
   }
 `;
 
-const FilterSelect = styled.select`
+const StyledSelect = styled.select`
   background: ${({ theme }) => theme.surface};
   color: ${({ theme }) => theme.primary};
   border: 1px solid ${({ theme }) => theme.border};
-  padding: 0.5rem;
   border-radius: 6px;
+  padding: 0.5rem;
   cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: ${({ theme }) => theme.border};
+  }
+  option {
+    background: ${({ theme }) => theme.surface};
+    color: ${({ theme }) => theme.primary};
+    
+  }
 `;
 
 const SearchInput = styled.input`
@@ -140,7 +150,7 @@ const SyncStatus = styled.div<{ active?: boolean }>`
 export const Header: React.FC = () => {
   const { theme, setTheme, filter, setFilter, setSearchQuery, addTask, syncKey, setSyncKey } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showSyncKey, setShowSyncKey] = useState(false);
+  const [showSyncKey, setShowSyncKey] = useState(false); 
   const [tempSyncKey, setTempSyncKey] = useState(syncKey);
 
   const toggleTheme = () => {
@@ -181,14 +191,11 @@ export const Header: React.FC = () => {
                 placeholder="Search tasks..."
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <FilterSelect
-                value={filter}
-                onChange={(e) => setFilter(e.target.value as Filter)}
-              >
+              <StyledSelect value={filter} onChange={(e) => setFilter(e.target.value as Filter)}>
                 <option value="all">All</option>
                 <option value="completed">Completed</option>
                 <option value="pending">Pending</option>
-              </FilterSelect>
+              </StyledSelect>
               <Button onClick={toggleTheme}>
                 {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
               </Button>

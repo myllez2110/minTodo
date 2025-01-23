@@ -81,9 +81,9 @@ const TextArea = styled.textarea`
 `;
 
 const Button = styled.button`
-  background: ${({ theme }) => theme.accent};
-  color: white;
-  border: none;
+  background: ${({ theme }) => theme.surface};
+  color: ${({ theme }) => theme.primary};
+  border: 1px solid ${({ theme }) => theme.border};
   padding: 0.75rem;
   border-radius: 6px;
   cursor: pointer;
@@ -91,7 +91,13 @@ const Button = styled.button`
   transition: all 0.2s ease;
 
   &:hover {
-    opacity: 0.9;
+    background: ${({ theme }) => theme.border};
+  }
+
+  &.active {
+    background: ${({ theme }) => theme.surface};
+    color: white;
+    border-color: ${({ theme }) => theme.border};
   }
 `;
 
@@ -160,7 +166,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSubmit,
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
           />
-          <Button type="submit">{task ? 'Update Task' : 'Create Task'}</Button>
+          <Button type="submit"> {task ? 'Update Task' : 'Create Task'}</Button>
         </Form>
       </Modal>
     </Overlay>

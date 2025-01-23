@@ -68,6 +68,19 @@ const IconButton = styled.button`
   }
 `;
 
+const CategoryTitle = styled.h2`
+  color: ${({ theme }) => theme.primary};
+  margin: 2rem 0 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+`;
+
+const NoTasksMessage = styled.div`
+  text-align: center;
+  padding: 2rem;
+  color: ${({ theme }) => theme.secondary};
+`;
+
 const SetupMessage = styled.div`
   text-align: center;
   padding: 3rem 1rem;
@@ -105,24 +118,94 @@ const SetupDescription = styled.p`
   line-height: 1.6;
 `;
 
+interface TasksByCategory {
+  pending: Task[];
+  overdue: Task[];
+  completed: Task[];
+  noDate: Task[];
+}
+
 export const TaskList: React.FC = () => {
   const { tasks, toggleTask, deleteTask, reorderTasks, filter, searchQuery, updateTask, syncKey } = useStore();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const filteredTasks = tasks
-    .filter((task) => {
-      if (filter === 'completed') return task.completed;
-      if (filter === 'pending') return !task.completed;
-      return true;
-    })
-    .filter((task) =>
+  const categorizeAndSortTasks = (tasks: Task[]): TasksByCategory => {
+    const now = new Date();
+    const filteredTasks = tasks.filter((task) =>
       task.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-  const onDragEnd = (result: any) => {
+    return filteredTasks.reduce((acc: TasksByCategory, task) => {
+      if (task.completed) {
+        acc.completed.push(task);
+      } else if (!task.deadline) {
+        acc.noDate.push(task);
+      } else {
+        const deadline = new Date(task.deadline);
+        if (deadline < now) {
+          acc.overdue.push(task);
+        } else {
+          acc.pending.push(task);
+        }
+      }
+      return acc;
+    }, {
+      pending: [],
+      overdue: [],
+      completed: [],
+      noDate: []
+    });
+  };
+
+  const getCategoryFromIndex = (index: number, categories: TasksByCategory): { category: keyof TasksByCategory; task: Task } => {
+    const { pending, overdue, noDate, completed } = categories;
+    
+    if (index < pending.length) {
+      return { category: 'pending', task: pending[index] };
+    }
+    index -= pending.length;
+    
+    if (index < overdue.length) {
+      return { category: 'overdue', task: overdue[index] };
+    }
+    index -= overdue.length;
+    
+    if (index < noDate.length) {
+      return { category: 'noDate', task: noDate[index] };
+    }
+    index -= noDate.length;
+    
+    return { category: 'completed', task: completed[index] };
+  };
+
+  const handleDragEnd = (result: any) => {
     if (!result.destination) return;
+
+    const categorizedTasks = categorizeAndSortTasks(tasks);
+    const sourceCategory = getCategoryFromIndex(result.source.index, categorizedTasks);
+    const destinationCategory = getCategoryFromIndex(result.destination.index, categorizedTasks);
+    
+    // Update task status based on destination category
+    if (sourceCategory.category !== destinationCategory.category) {
+      const task = sourceCategory.task;
+      
+      if (destinationCategory.category === 'completed' && !task.completed) {
+        updateTask(task.id, { completed: true });
+      } else if (destinationCategory.category !== 'completed' && task.completed) {
+        updateTask(task.id, { completed: false });
+      }
+    }
+
     reorderTasks(result.source.index, result.destination.index);
+  };
+
+  const sortTasksByDate = (tasks: Task[]): Task[] => {
+    return [...tasks].sort((a, b) => {
+      if (!a.deadline) return 1;
+      if (!b.deadline) return -1;
+      return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+    });
   };
 
   const handleEditTask = (taskToEdit: Task) => {
@@ -138,6 +221,45 @@ export const TaskList: React.FC = () => {
       });
     }
     setEditingTask(null);
+  };
+
+  const renderTaskList = (taskList: Task[], startIndex: number) => {
+    return taskList.map((task, index) => (
+      <Draggable key={task.id} draggableId={task.id} index={startIndex + index}>
+        {(provided, snapshot) => (
+          <TaskItem
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            isDragging={snapshot.isDragging}
+          >
+            <IconButton onClick={() => toggleTask(task.id)}>
+              <Check
+                size={20}
+                color={task.completed ? '#22c55e' : undefined}
+              />
+            </IconButton>
+            <TaskContent>
+              <TaskTitle completed={task.completed}>
+                {task.title}
+              </TaskTitle>
+              <TaskDescription>{task.description}</TaskDescription>
+              {task.deadline && (
+                <TaskDeadline>
+                  Due: {format(new Date(task.deadline), 'PPP')}
+                </TaskDeadline>
+              )}
+            </TaskContent>
+            <IconButton onClick={() => handleEditTask(task)}>
+              <Edit3 size={20} />
+            </IconButton>
+            <IconButton onClick={() => deleteTask(task.id)}>
+              <Trash2 size={20} />
+            </IconButton>
+          </TaskItem>
+        )}
+      </Draggable>
+    ));
   };
 
   if (!syncKey) {
@@ -156,48 +278,57 @@ export const TaskList: React.FC = () => {
     );
   }
 
+  const categorizedTasks = categorizeAndSortTasks(tasks);
+  const sortedPending = sortTasksByDate(categorizedTasks.pending);
+  const sortedOverdue = sortTasksByDate(categorizedTasks.overdue);
+  const sortedCompleted = sortTasksByDate(categorizedTasks.completed);
+  const sortedNoDate = categorizedTasks.noDate;
+
+  const shouldShowCategory = (category: Task[]): boolean => {
+    if (filter === 'all') return true;
+    if (filter === 'completed') return category === categorizedTasks.completed;
+    return category !== categorizedTasks.completed;
+  };
+
   return (
     <>
-      <DragDropContext onDragEnd={onDragEnd}>
+      <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="tasks">
           {(provided) => (
             <Container ref={provided.innerRef} {...provided.droppableProps}>
-              {filteredTasks.map((task, index) => (
-                <Draggable key={task.id} draggableId={task.id} index={index}>
-                  {(provided, snapshot) => (
-                    <TaskItem
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      isDragging={snapshot.isDragging}
-                    >
-                      <IconButton onClick={() => toggleTask(task.id)}>
-                        <Check
-                          size={20}
-                          color={task.completed ? '#22c55e' : undefined}
-                        />
-                      </IconButton>
-                      <TaskContent>
-                        <TaskTitle completed={task.completed}>
-                          {task.title}
-                        </TaskTitle>
-                        <TaskDescription>{task.description}</TaskDescription>
-                        {task.deadline && (
-                          <TaskDeadline>
-                            Due: {format(task.deadline, 'PPP')}
-                          </TaskDeadline>
-                        )}
-                      </TaskContent>
-                      <IconButton onClick={() => handleEditTask(task)}>
-                        <Edit3 size={20} />
-                      </IconButton>
-                      <IconButton onClick={() => deleteTask(task.id)}>
-                        <Trash2 size={20} />
-                      </IconButton>
-                    </TaskItem>
+              {tasks.length === 0 ? (
+                <NoTasksMessage>No tasks found</NoTasksMessage>
+              ) : (
+                <>
+                  {shouldShowCategory(sortedPending) && sortedPending.length > 0 && (
+                    <>
+                      <CategoryTitle>Upcoming Tasks</CategoryTitle>
+                      {renderTaskList(sortedPending, 0)}
+                    </>
                   )}
-                </Draggable>
-              ))}
+                  
+                  {shouldShowCategory(sortedOverdue) && sortedOverdue.length > 0 && (
+                    <>
+                      <CategoryTitle>Overdue Tasks</CategoryTitle>
+                      {renderTaskList(sortedOverdue, sortedPending.length)}
+                    </>
+                  )}
+                  
+                  {shouldShowCategory(sortedNoDate) && sortedNoDate.length > 0 && (
+                    <>
+                      <CategoryTitle>Tasks without Due Date</CategoryTitle>
+                      {renderTaskList(sortedNoDate, sortedPending.length + sortedOverdue.length)}
+                    </>
+                  )}
+                  
+                  {shouldShowCategory(sortedCompleted) && sortedCompleted.length > 0 && (
+                    <>
+                      <CategoryTitle>Completed Tasks</CategoryTitle>
+                      {renderTaskList(sortedCompleted, sortedPending.length + sortedOverdue.length + sortedNoDate.length)}
+                    </>
+                  )}
+                </>
+              )}
               {provided.placeholder}
             </Container>
           )}
