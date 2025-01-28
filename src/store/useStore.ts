@@ -64,21 +64,33 @@ export const useStore = create<TodoStore>()(
           sync_key: syncKey,
         };
 
+        // Optimistically update UI
+        set((state) => ({
+          tasks: [...state.tasks, newTask],
+        }));
+
         const { error } = await supabase
           .from('tasks')
           .insert([newTask]);
 
         if (error) {
           console.error('Error adding task:', error);
+          // Revert on error
+          await get().syncTasks();
           return;
         }
-
-        await get().syncTasks();
       },
 
       toggleTask: async (id) => {
         const task = get().tasks.find((t) => t.id === id);
         if (!task) return;
+
+        // Optimistically update UI
+        set((state) => ({
+          tasks: state.tasks.map((t) =>
+            t.id === id ? { ...t, completed: !t.completed } : t
+          ),
+        }));
 
         const { error } = await supabase
           .from('tasks')
@@ -87,13 +99,20 @@ export const useStore = create<TodoStore>()(
 
         if (error) {
           console.error('Error toggling task:', error);
+          // Revert on error
+          await get().syncTasks();
           return;
         }
-
-        await get().syncTasks();
       },
 
       updateTask: async (id, updates) => {
+        // Optimistically update UI
+        set((state) => ({
+          tasks: state.tasks.map((t) =>
+            t.id === id ? { ...t, ...updates } : t
+          ),
+        }));
+
         const { error } = await supabase
           .from('tasks')
           .update(updates)
@@ -101,13 +120,18 @@ export const useStore = create<TodoStore>()(
 
         if (error) {
           console.error('Error updating task:', error);
+          // Revert on error
+          await get().syncTasks();
           return;
         }
-
-        await get().syncTasks();
       },
 
       deleteTask: async (id) => {
+        // Optimistically update UI
+        set((state) => ({
+          tasks: state.tasks.filter((t) => t.id !== id),
+        }));
+
         const { error } = await supabase
           .from('tasks')
           .delete()
@@ -115,10 +139,10 @@ export const useStore = create<TodoStore>()(
 
         if (error) {
           console.error('Error deleting task:', error);
+          // Revert on error
+          await get().syncTasks();
           return;
         }
-
-        await get().syncTasks();
       },
 
       reorderTasks: (startIndex, endIndex) => {

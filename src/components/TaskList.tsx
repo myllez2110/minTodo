@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useStore } from '../store/useStore';
 import { Task } from '../types';
@@ -58,6 +58,18 @@ const TaskDeadline = styled.span`
   color: ${({ theme }) => theme.accent};
 `;
 
+const checkAnimation = keyframes`
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+`;
+
 const IconButton = styled.button`
   background: none;
   border: none;
@@ -72,6 +84,17 @@ const IconButton = styled.button`
 
   &:hover {
     color: ${({ theme }) => theme.primary};
+  }
+
+  &.check-button {
+    svg {
+      transition: all 0.2s ease;
+    }
+    
+    &.completed svg {
+      color: ${({ theme }) => theme.success};
+      animation: ${checkAnimation} 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
   }
 `;
 
@@ -240,11 +263,11 @@ export const TaskList: React.FC = () => {
             {...provided.dragHandleProps}
             isDragging={snapshot.isDragging}
           >
-            <IconButton onClick={() => toggleTask(task.id)}>
-              <Check
-                size={20}
-                color={task.completed ? '#22c55e' : undefined}
-              />
+            <IconButton 
+              onClick={() => toggleTask(task.id)}
+              className={`check-button ${task.completed ? 'completed' : ''}`}
+            >
+              <Check size={20} />
             </IconButton>
             <TaskContent>
               <TaskTitle completed={task.completed}>
