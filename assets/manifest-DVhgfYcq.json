@@ -4,7 +4,7 @@
   "id": "minTodo",
   "description": "a minimal and simple to-do task list with easy sync without login.",
   "start_url": "/",
-  "display": "standalone",
+  "display": "fullscreen",
   "theme_color": "#000000",
   "background_color": "#000000",
   "lang": "en",
