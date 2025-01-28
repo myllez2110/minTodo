@@ -20,7 +20,7 @@ const TaskItem = styled.div<{ isDragging: boolean }>`
   padding: 1rem;
   margin-bottom: 1rem;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 1rem;
   transition: all 0.2s ease;
   opacity: ${({ isDragging }) => (isDragging ? 0.5 : 1)};
@@ -32,6 +32,7 @@ const TaskItem = styled.div<{ isDragging: boolean }>`
 
 const TaskContent = styled.div`
   flex: 1;
+  min-width: 0; /* Add this to enable proper text wrapping */
 `;
 
 const TaskTitle = styled.h3<{ completed: boolean }>`
@@ -39,12 +40,17 @@ const TaskTitle = styled.h3<{ completed: boolean }>`
   text-decoration: ${({ completed }) => (completed ? 'line-through' : 'none')};
   color: ${({ theme, completed }) =>
     completed ? theme.secondary : theme.primary};
+  word-break: break-word;
+  overflow-wrap: break-word;
 `;
 
 const TaskDescription = styled.p`
   margin: 0.5rem 0;
   color: ${({ theme }) => theme.secondary};
   font-size: 0.9rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
 `;
 
 const TaskDeadline = styled.span`
@@ -62,6 +68,7 @@ const IconButton = styled.button`
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 
   &:hover {
     color: ${({ theme }) => theme.primary};

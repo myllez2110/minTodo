@@ -48,6 +48,7 @@ const Button = styled.button`
   align-items: center;
   gap: 0.5rem;
   transition: all 0.2s ease;
+  height: 38px;
 
   &:hover {
     background: ${({ theme }) => theme.border};
@@ -68,6 +69,7 @@ const StyledSelect = styled.select`
   padding: 0.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  height: 38px;
 
   &:hover {
     background: ${({ theme }) => theme.border};
@@ -86,6 +88,7 @@ const SearchInput = styled.input`
   padding: 0.5rem;
   border-radius: 6px;
   width: 200px;
+  height: 38px;
 
   &::placeholder {
     color: ${({ theme }) => theme.secondary};
