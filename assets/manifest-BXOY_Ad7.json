@@ -64,6 +64,11 @@
       "src": "../vite.svg",
       "sizes": "512x512",
       "type": "image/svg+xml"
+    },
+    {
+      "src": "icons/base-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ]
 }
