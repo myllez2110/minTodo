@@ -1,0 +1,17 @@
+{
+    "name": "minimal todo.",
+    "short_name": "minTodo",
+    "description": "A minimal todo app with sync capabilities",
+    "start_url": "./",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "icons": [
+      {
+        "src": "./base-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any maskable"
+      }
+    ]
+  }
