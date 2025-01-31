@@ -1,0 +1,26 @@
+{
+"name": "minTodo",
+"short_name": "minimal todo.",
+"start_url": "https://myllez2110.github.io/minTodo/",
+"display": "fullscreen",
+"description": "A minimalistic tasks-based ToDo list synced without login.",
+"lang": "English",
+"dir": "auto",
+"theme_color": "#000000",
+"background_color": "#000000",
+"orientation": "any",
+"icons": [
+    {
+        "src": "https://www.pwabuilder.com/assets/icons/icon_512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "maskable"
+    },
+    {
+        "src": "https://www.pwabuilder.com/assets/icons/icon_192.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any"
+    }
+]
+}
