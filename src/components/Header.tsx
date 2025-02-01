@@ -59,6 +59,10 @@ const Button = styled.button`
     color: white;
     border-color: ${({ theme }) => theme.border};
   }
+
+  @media (max-width: 768px) {
+    margin: 1px;
+  }
 `;
 
 const StyledSelect = styled.select`
@@ -98,6 +102,9 @@ const SearchInput = styled.input`
 const SyncKeyInput = styled(SearchInput)`
   width: 250px;
   font-family: monospace;
+  @media (max-width: 768px) {
+    width: 100px;
+  }
 `;
 
 const SyncKeyContainer = styled.div`
@@ -237,7 +244,6 @@ export const Header: React.FC = () => {
                       setTempSyncKey('');
                     }}
                   >
-                    <X size={18} />
                     Remove Key
                   </Button>
                 )}
